@@ -203,7 +203,10 @@ var Lines = React.createClass({
             );
         });
         return (
-            <table onClick={function(e){
+            <table>
+                <thead>
+                <tr>
+                    <th>Text <button onClick={function(e){
                     selectElementContents(document.getElementById('content'));
                     try {
                         var successful = document.execCommand('copy');
@@ -214,10 +217,7 @@ var Lines = React.createClass({
                       }
                     var sel = window.getSelection();
                     sel.removeAllRanges();
-                }}>
-                <thead>
-                <tr>
-                    <th>Text</th>
+                }}>Copy</button></th>
                     <th>Uni</th>
                     <th>Tot</th>
                     <th>K</th>
