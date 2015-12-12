@@ -81,19 +81,37 @@ var Editor = React.createClass({
         this.setState({text: e.target.value});
 
         var lines = e.target.value.split('\n').map(function(line){
-            var normalised = line.toLowerCase();
-            var normalised = normalised.replace(/[.,-\/#!\$%\^&\*;:{}=\-_`~()]/g," ");
+            var normalised = line.toLowerCase().replace(/[.,-\/#!\$%\^&\*;:{}=\-_`~()]/g," ");
 
-            var words = normalised.match(/([^ ]+)/gi);
+            var re = /([^ ]+)/gi;
+
+            var words = [];
+            var match = null;
+            while (match=re.exec(normalised)) {
+                var start = match.index,
+                    end = match.index + match[0].length;
+                words.push({
+                    value: normalised.slice(start, end),
+                    start: start,
+                    end: end
+                });
+            }
+
             if(!words) {
                 words = []
             }
-            //console.log(words);
-            var uniqueWords = words.getUnique();
+            var unique = words.map(function(val){ return val.value; }).getUnique();
+
+            var unique_counts = unique.map(function(v1){
+                return [v1, words.filter(function(v2){ return v2.value == v1; }).sort(function(a,b){ return a.start - b.start; })]
+            });
+
+            console.log(unique_counts);
+
             return {
                 text: line,
-                unique: uniqueWords.length,
-                total: words.length
+                unique: unique_counts,
+                total: words
             }
         });
 
@@ -107,8 +125,38 @@ var Editor = React.createClass({
 });
 
 var Line = React.createClass({
+    renderText: function(text, unique) {
+        var unique = unique.filter(function(v){return v[1].length > 1;});
+
+        var p = 0;
+
+        var unique_len = unique.map(function(v) {
+            return v[1].map(function(v2){
+                return [v[1].length, v2]
+            });
+        });
+        unique_len = unique_len.reduce(function(a,b){ return [].concat(a, b); }, []);
+        unique_len.sort(function(a,b){
+            return a[1].start - b[1].start;
+        }).map(function(v){
+            var v_l = v[0],
+                v2 = v[1];
+
+            var classes = 'coloured coloured-' +v_l;
+            if (v_l > 5) {
+                classes += ' coloured-lot';
+            }
+            var text_new = text.substring(0, v2.start + p) + '<span class="' + classes + '">' +  text.substring(v2.start + p, v2.end + p) + "</span>" + text.substring(v2.end + p);
+            p += text_new.length - text.length;
+            text = text_new;
+        });
+
+
+
+        return text;
+    },
     render: function () {
-        var k = this.props.unique / this.props.total;
+        var k = this.props.unique.length / this.props.total.length;
         if(!k) {
             k = '';
         } else {
@@ -118,9 +166,9 @@ var Line = React.createClass({
 
         return (
             <tr>
-            <td>{this.props.text}</td>
-            <td>{this.props.unique}</td>
-            <td>{this.props.total}</td>
+            <td dangerouslySetInnerHTML={{__html: this.renderText(this.props.text, this.props.unique)}} />
+            <td>{this.props.unique.length}</td>
+            <td>{this.props.total.length}</td>
             <td>{k}</td>
         </tr>
         );
