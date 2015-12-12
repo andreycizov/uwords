@@ -82,9 +82,9 @@ var Editor = React.createClass({
 
         var lines = e.target.value.split('\n').map(function(line){
             var normalised = line.toLowerCase();
-            var normalised = normalised.replace(/[.,-\/#!$%\^&\*;:{}=\-_`~()]/g," ");
+            var normalised = normalised.replace(/[.,-\/#!\$%\^&\*;:{}=\-_`~()]/g," ");
 
-            var words = normalised.match(/[ ]*([^ ]+)+[ ]*/gi);
+            var words = normalised.match(/([^ ]+)/gi);
             if(!words) {
                 words = []
             }
